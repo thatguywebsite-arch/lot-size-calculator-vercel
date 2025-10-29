@@ -1,8 +1,18 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // <-- allow all origins
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    // CORS preflight
+    res.status(200).end();
+    return;
+  }
+
   const { address } = req.body;
-  const ATTOM_KEY = process.env.ATTOM_KEY; // must match your environment variable name
+  const ATTOM_KEY = process.env.ATTOM_KEY;
 
   try {
     const response = await fetch(
@@ -16,13 +26,13 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    console.log("ATTOM raw response:", data); // for debugging
+    console.log("ATTOM raw response:", data);
 
     const lotSize = data.property && data.property[0] ? data.property[0].lotSize : 2200;
 
     res.status(200).json({ lotSize });
   } catch (err) {
     console.error("ATTOM fetch error:", err);
-    res.status(500).json({ lotSize: 2200 }); // fallback if error
+    res.status(500).json({ lotSize: 2200 });
   }
 }
